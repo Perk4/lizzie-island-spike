@@ -5,68 +5,301 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lizzie Island</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
-    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
     body {
-      background: linear-gradient(to bottom, #e8ddb5 0%, #FCF2C6 40%);
+      background: linear-gradient(to bottom, #d4c9a3 0%, #e8ddb5 30%, #FCF2C6 60%);
       font-family: Georgia, serif;
     }
-    
+
     .island {
       position: absolute;
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
-      width: 90vw;
-      max-width: 1200px;
-      height: 35vh;
+      width: 92vw;
+      max-width: 1100px;
+      height: 42vh;
       background: #FCF2C6;
-      border-radius: 50% 50% 0 0 / 30% 30% 0 0;
+      border-radius: 50% 50% 0 0 / 35% 35% 0 0;
       box-shadow: 
-        inset 0 20px 60px rgba(121, 102, 53, 0.15),
-        0 -4px 20px rgba(87, 53, 28, 0.1);
+        inset 0 20px 60px rgba(121, 102, 53, 0.12),
+        0 -4px 20px rgba(87, 53, 28, 0.08);
     }
-    
+
     .island::before {
       content: '';
       position: absolute;
-      top: 10%;
-      left: 10%;
-      right: 10%;
-      height: 60%;
-      background: radial-gradient(ellipse at 30% 40%, rgba(121, 102, 53, 0.08) 0%, transparent 50%),
-                  radial-gradient(ellipse at 70% 60%, rgba(121, 102, 53, 0.06) 0%, transparent 40%);
+      top: 8%;
+      left: 8%;
+      right: 8%;
+      height: 70%;
+      background: 
+        radial-gradient(ellipse at 25% 35%, rgba(121, 102, 53, 0.06) 0%, transparent 45%),
+        radial-gradient(ellipse at 72% 55%, rgba(121, 102, 53, 0.05) 0%, transparent 35%);
       border-radius: inherit;
     }
-    
-    .ground-texture {
+
+    .hotspot {
       position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 100%;
-      background-image: 
-        radial-gradient(circle at 20% 80%, rgba(165, 83, 45, 0.05) 0%, transparent 8%),
-        radial-gradient(circle at 60% 70%, rgba(165, 83, 45, 0.04) 0%, transparent 6%),
-        radial-gradient(circle at 80% 85%, rgba(165, 83, 45, 0.03) 0%, transparent 10%),
-        radial-gradient(circle at 35% 60%, rgba(121, 102, 53, 0.04) 0%, transparent 5%);
-      border-radius: inherit;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #5a4a2a;
+      text-align: center;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hotspot:hover {
+      transform: scale(1.08);
+      box-shadow: 0 4px 16px rgba(87, 53, 28, 0.25);
+    }
+
+    .hotspot-goal {
+      top: 18%;
+      left: 22%;
+      background: radial-gradient(circle at 35% 35%, #f5e6c4 0%, #e0c890 70%, #c9a86c 100%);
+      box-shadow: 0 3px 10px rgba(87, 53, 28, 0.2);
+    }
+
+    .hotspot-artifact {
+      top: 30%;
+      left: 55%;
+      background: radial-gradient(circle at 35% 35%, #e8d4b0 0%, #d1b896 70%, #b89970 100%);
+      box-shadow: 0 3px 10px rgba(87, 53, 28, 0.2);
+    }
+
+    .hotspot-approval {
+      top: 45%;
+      left: 35%;
+      background: radial-gradient(circle at 35% 35%, #f0dca8 0%, #dcc080 70%, #c4a058 100%);
+      box-shadow: 0 3px 10px rgba(87, 53, 28, 0.2);
+    }
+
+    .panel-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(40, 35, 25, 0.4);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+      z-index: 100;
+    }
+
+    .panel-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.95);
+      width: 90%;
+      max-width: 480px;
+      max-height: 85vh;
+      background: #fdfaf0;
+      border-radius: 12px;
+      box-shadow: 0 8px 40px rgba(40, 35, 25, 0.3);
+      padding: 28px 24px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+      z-index: 101;
+      overflow-y: auto;
+    }
+
+    .panel.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .panel-close {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 22px;
+      color: #8a7a5a;
+      line-height: 1;
+    }
+
+    .panel-close:hover { color: #5a4a2a; }
+
+    .panel-title {
+      font-size: 20px;
+      color: #4a3a20;
+      margin-bottom: 20px;
+      padding-right: 30px;
+    }
+
+    .panel-section {
+      margin-bottom: 16px;
+    }
+
+    .panel-section:last-child { margin-bottom: 0; }
+
+    .panel-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #9a8a6a;
+      margin-bottom: 4px;
+    }
+
+    .panel-value {
+      font-size: 15px;
+      color: #4a3a20;
+      line-height: 1.5;
+    }
+
+    .panel-soul {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid #e8ddb5;
+      font-size: 13px;
+      font-style: italic;
+      color: #7a6a4a;
     }
   </style>
 </head>
 <body>
   <div class="island">
-    <div class="ground-texture"></div>
+    <div class="hotspot hotspot-goal" data-panel="goal">Goal</div>
+    <div class="hotspot hotspot-artifact" data-panel="artifact">Artifact</div>
+    <div class="hotspot hotspot-approval" data-panel="approval">Approval</div>
   </div>
+
+  <div class="panel-overlay" id="overlay"></div>
+
+  <div class="panel" id="panel-goal">
+    <button class="panel-close">&times;</button>
+    <h2 class="panel-title">Plan a local ceramics class</h2>
+    <div class="panel-section">
+      <div class="panel-label">What matters</div>
+      <div class="panel-value">Finding a beginner-friendly ceramics class nearby that fits your schedule and budget.</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">What Lizzie is doing</div>
+      <div class="panel-value">Researching local studios, comparing class times and prices, gathering reviews.</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">On whose authority</div>
+      <div class="panel-value">Lizzie proposed this goal. Only you can confirm it.</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">What it made</div>
+      <div class="panel-value">A shortlist of three studios with class schedules and pricing.</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">What evidence</div>
+      <div class="panel-value">Studio websites, Google Maps reviews, class availability pages.</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">What needs you</div>
+      <div class="panel-value">Confirming this is the goal you want, and picking a studio to try.</div>
+    </div>
+    <div class="panel-soul">Lizzie asks before approving work.</div>
+  </div>
+
+  <div class="panel" id="panel-artifact">
+    <button class="panel-close">&times;</button>
+    <h2 class="panel-title">Ceramics Studio Research</h2>
+    <div class="panel-section">
+      <div class="panel-label">What matters</div>
+      <div class="panel-value">This research helps you pick a studio without visiting each one yourself.</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">What Lizzie is doing</div>
+      <div class="panel-value">Compiled information from three local studios into a comparison.</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">On whose authority</div>
+      <div class="panel-value">Created as part of the "Plan a local ceramics class" goal you're reviewing.</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">What it made</div>
+      <div class="panel-value"><strong>Clay Collective</strong> — Saturdays 10am, $45/session, wheel & hand-building<br>
+        <strong>Mudworks Studio</strong> — Weekday evenings, $35/session, hand-building only<br>
+        <strong>The Potter's Bench</strong> — Flexible drop-in, $50/session, all techniques</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">What evidence</div>
+      <div class="panel-value">Dummy data for this spike — not live lookups.</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">What needs you</div>
+      <div class="panel-value">Review the options and tell Lizzie which one to book, or ask for more detail.</div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-approval">
+    <button class="panel-close">&times;</button>
+    <h2 class="panel-title">Awaiting Your Confirmation</h2>
+    <div class="panel-section">
+      <div class="panel-label">What matters</div>
+      <div class="panel-value">You decide whether this goal is worth pursuing. Lizzie can't confirm it for you.</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">What Lizzie is doing</div>
+      <div class="panel-value">Waiting. No further work until you say yes.</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">On whose authority</div>
+      <div class="panel-value">Your authority. The agent cannot approve goals on your behalf.</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">What it made</div>
+      <div class="panel-value">Nothing new — approval is a checkpoint, not a deliverable.</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">What evidence</div>
+      <div class="panel-value">The Goal and Artifact are ready for your review.</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">What needs you</div>
+      <div class="panel-value">Confirm the goal to let Lizzie continue, or reject it to stop this line of work.</div>
+    </div>
+    <div class="panel-soul">Lizzie asks before approving work.</div>
+  </div>
+
+  <script>
+    const overlay = document.getElementById('overlay');
+    const panels = document.querySelectorAll('.panel');
+    const hotspots = document.querySelectorAll('.hotspot');
+
+    function closeAll() {
+      overlay.classList.remove('open');
+      panels.forEach(p => p.classList.remove('open'));
+    }
+
+    hotspots.forEach(h => {
+      h.addEventListener('click', () => {
+        closeAll();
+        const id = 'panel-' + h.dataset.panel;
+        document.getElementById(id).classList.add('open');
+        overlay.classList.add('open');
+      });
+    });
+
+    overlay.addEventListener('click', closeAll);
+    document.querySelectorAll('.panel-close').forEach(btn => {
+      btn.addEventListener('click', closeAll);
+    });
+  </script>
 </body>
 </html>
