@@ -12,6 +12,26 @@
       font-family: Georgia, serif;
     }
 
+    .activity-log {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(253, 250, 240, 0.95);
+      padding: 10px 18px;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(40, 35, 25, 0.15);
+      font-size: 13px;
+      color: #5a4a2a;
+      max-width: 90%;
+      text-align: center;
+      z-index: 50;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .activity-log.visible { opacity: 1; visibility: visible; }
+
     .island {
       position: absolute;
       bottom: 0;
@@ -46,7 +66,7 @@
       height: 70px;
       border-radius: 50%;
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -69,6 +89,9 @@
       background: radial-gradient(circle at 35% 35%, #f5e6c4 0%, #e0c890 70%, #c9a86c 100%);
       box-shadow: 0 3px 10px rgba(87, 53, 28, 0.2);
     }
+    .hotspot-goal.confirmed {
+      background: radial-gradient(circle at 35% 35%, #d4eac4 0%, #a8d490 70%, #7cb860 100%);
+    }
 
     .hotspot-artifact {
       top: 30%;
@@ -83,6 +106,9 @@
       background: radial-gradient(circle at 35% 35%, #f0dca8 0%, #dcc080 70%, #c4a058 100%);
       box-shadow: 0 3px 10px rgba(87, 53, 28, 0.2);
     }
+    .hotspot-approval.confirmed {
+      background: radial-gradient(circle at 35% 35%, #d4eac4 0%, #a8d490 70%, #7cb860 100%);
+    }
 
     .panel-overlay {
       position: fixed;
@@ -93,11 +119,7 @@
       transition: opacity 0.25s ease, visibility 0.25s ease;
       z-index: 100;
     }
-
-    .panel-overlay.open {
-      opacity: 1;
-      visibility: visible;
-    }
+    .panel-overlay.open { opacity: 1; visibility: visible; }
 
     .panel {
       position: fixed;
@@ -117,12 +139,7 @@
       z-index: 101;
       overflow-y: auto;
     }
-
-    .panel.open {
-      opacity: 1;
-      visibility: visible;
-      transform: translate(-50%, -50%) scale(1);
-    }
+    .panel.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
 
     .panel-close {
       position: absolute;
@@ -137,7 +154,6 @@
       color: #8a7a5a;
       line-height: 1;
     }
-
     .panel-close:hover { color: #5a4a2a; }
 
     .panel-title {
@@ -147,10 +163,20 @@
       padding-right: 30px;
     }
 
-    .panel-section {
-      margin-bottom: 16px;
+    .panel-badge {
+      display: inline-block;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-left: 8px;
+      vertical-align: middle;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
+    .panel-badge.pending { background: #f0dca8; color: #7a5a20; }
+    .panel-badge.confirmed { background: #b8e0a0; color: #3a6020; }
 
+    .panel-section { margin-bottom: 16px; }
     .panel-section:last-child { margin-bottom: 0; }
 
     .panel-label {
@@ -175,9 +201,39 @@
       font-style: italic;
       color: #7a6a4a;
     }
+
+    .panel-actions {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid #e8ddb5;
+    }
+
+    .btn-approve {
+      background: #5a8040;
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-family: inherit;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .btn-approve:hover { background: #4a6830; }
+    .btn-approve:disabled {
+      background: #b8d0a0;
+      cursor: default;
+    }
+
+    .confirmed-msg {
+      color: #4a7030;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
+  <div class="activity-log" id="activity"></div>
+
   <div class="island">
     <div class="hotspot hotspot-goal" data-panel="goal">Goal</div>
     <div class="hotspot hotspot-artifact" data-panel="artifact">Artifact</div>
@@ -188,18 +244,18 @@
 
   <div class="panel" id="panel-goal">
     <button class="panel-close">&times;</button>
-    <h2 class="panel-title">Plan a local ceramics class</h2>
+    <h2 class="panel-title">Plan a local ceramics class <span class="panel-badge pending" id="goal-badge">Proposed</span></h2>
     <div class="panel-section">
       <div class="panel-label">What matters</div>
       <div class="panel-value">Finding a beginner-friendly ceramics class nearby that fits your schedule and budget.</div>
     </div>
     <div class="panel-section">
       <div class="panel-label">What Lizzie is doing</div>
-      <div class="panel-value">Researching local studios, comparing class times and prices, gathering reviews.</div>
+      <div class="panel-value" id="goal-doing">Researching local studios, comparing class times and prices, gathering reviews.</div>
     </div>
     <div class="panel-section">
       <div class="panel-label">On whose authority</div>
-      <div class="panel-value">Lizzie proposed this goal. Only you can confirm it.</div>
+      <div class="panel-value" id="goal-authority">Lizzie proposed this goal. Only you can confirm it.</div>
     </div>
     <div class="panel-section">
       <div class="panel-label">What it made</div>
@@ -207,11 +263,11 @@
     </div>
     <div class="panel-section">
       <div class="panel-label">What evidence</div>
-      <div class="panel-value">Studio websites, Google Maps reviews, class availability pages.</div>
+      <div class="panel-value" id="goal-evidence">Studio websites, Google Maps reviews, class availability pages.</div>
     </div>
     <div class="panel-section">
       <div class="panel-label">What needs you</div>
-      <div class="panel-value">Confirming this is the goal you want, and picking a studio to try.</div>
+      <div class="panel-value" id="goal-needs">Confirming this is the goal you want, and picking a studio to try.</div>
     </div>
     <div class="panel-soul">Lizzie asks before approving work.</div>
   </div>
@@ -249,14 +305,14 @@
 
   <div class="panel" id="panel-approval">
     <button class="panel-close">&times;</button>
-    <h2 class="panel-title">Awaiting Your Confirmation</h2>
+    <h2 class="panel-title" id="approval-title">Awaiting Your Confirmation</h2>
     <div class="panel-section">
       <div class="panel-label">What matters</div>
-      <div class="panel-value">You decide whether this goal is worth pursuing. Lizzie can't confirm it for you.</div>
+      <div class="panel-value" id="approval-matters">You decide whether this goal is worth pursuing. Lizzie can't confirm it for you.</div>
     </div>
     <div class="panel-section">
       <div class="panel-label">What Lizzie is doing</div>
-      <div class="panel-value">Waiting. No further work until you say yes.</div>
+      <div class="panel-value" id="approval-doing">Waiting. No further work until you say yes.</div>
     </div>
     <div class="panel-section">
       <div class="panel-label">On whose authority</div>
@@ -264,27 +320,80 @@
     </div>
     <div class="panel-section">
       <div class="panel-label">What it made</div>
-      <div class="panel-value">Nothing new — approval is a checkpoint, not a deliverable.</div>
+      <div class="panel-value" id="approval-made">Nothing new — approval is a checkpoint, not a deliverable.</div>
     </div>
     <div class="panel-section">
       <div class="panel-label">What evidence</div>
-      <div class="panel-value">The Goal and Artifact are ready for your review.</div>
+      <div class="panel-value" id="approval-evidence">The Goal and Artifact are ready for your review.</div>
     </div>
     <div class="panel-section">
       <div class="panel-label">What needs you</div>
-      <div class="panel-value">Confirm the goal to let Lizzie continue, or reject it to stop this line of work.</div>
+      <div class="panel-value" id="approval-needs">Confirm the goal to let Lizzie continue, or reject it to stop this line of work.</div>
+    </div>
+    <div class="panel-actions" id="approval-actions">
+      <button class="btn-approve" id="btn-confirm">Confirm Goal</button>
     </div>
     <div class="panel-soul">Lizzie asks before approving work.</div>
   </div>
 
   <script>
+    const state = { confirmed: false };
+
     const overlay = document.getElementById('overlay');
     const panels = document.querySelectorAll('.panel');
     const hotspots = document.querySelectorAll('.hotspot');
+    const activity = document.getElementById('activity');
 
     function closeAll() {
       overlay.classList.remove('open');
       panels.forEach(p => p.classList.remove('open'));
+    }
+
+    function showActivity(msg) {
+      activity.textContent = msg;
+      activity.classList.add('visible');
+    }
+
+    function updateUI() {
+      const goalBadge = document.getElementById('goal-badge');
+      const goalDoing = document.getElementById('goal-doing');
+      const goalAuthority = document.getElementById('goal-authority');
+      const goalEvidence = document.getElementById('goal-evidence');
+      const goalNeeds = document.getElementById('goal-needs');
+
+      const approvalTitle = document.getElementById('approval-title');
+      const approvalMatters = document.getElementById('approval-matters');
+      const approvalDoing = document.getElementById('approval-doing');
+      const approvalMade = document.getElementById('approval-made');
+      const approvalEvidence = document.getElementById('approval-evidence');
+      const approvalNeeds = document.getElementById('approval-needs');
+      const approvalActions = document.getElementById('approval-actions');
+
+      const hotspotGoal = document.querySelector('.hotspot-goal');
+      const hotspotApproval = document.querySelector('.hotspot-approval');
+
+      if (state.confirmed) {
+        goalBadge.textContent = 'Confirmed';
+        goalBadge.classList.remove('pending');
+        goalBadge.classList.add('confirmed');
+        goalDoing.textContent = 'Proceeding with research. You confirmed this goal.';
+        goalAuthority.textContent = 'You confirmed this goal. Lizzie is now authorized to continue.';
+        goalEvidence.textContent = 'Studio websites, Google Maps reviews, class availability pages. Goal confirmed by you.';
+        goalNeeds.textContent = 'Pick a studio when you're ready.';
+
+        approvalTitle.textContent = 'Goal Confirmed';
+        approvalMatters.textContent = 'You confirmed the goal. Lizzie can now proceed.';
+        approvalDoing.textContent = 'Continuing work on the ceramics class research.';
+        approvalMade.textContent = 'Your confirmation — recorded as evidence of user authority.';
+        approvalEvidence.textContent = 'You confirmed the Goal. Activity: "You confirmed the Goal."';
+        approvalNeeds.textContent = 'Nothing right now. Check back for progress.';
+        approvalActions.innerHTML = '<span class="confirmed-msg">✓ You confirmed this goal</span>';
+
+        hotspotGoal.classList.add('confirmed');
+        hotspotApproval.classList.add('confirmed');
+
+        showActivity('You confirmed the Goal: "Plan a local ceramics class"');
+      }
     }
 
     hotspots.forEach(h => {
@@ -299,6 +408,11 @@
     overlay.addEventListener('click', closeAll);
     document.querySelectorAll('.panel-close').forEach(btn => {
       btn.addEventListener('click', closeAll);
+    });
+
+    document.getElementById('btn-confirm').addEventListener('click', () => {
+      state.confirmed = true;
+      updateUI();
     });
   </script>
 </body>
